@@ -28,7 +28,13 @@ A cada push, o GitHub Actions (`.github/workflows/executaveis.yml`) gera e testa
 
 Os dois ficam na página **Releases** do repositório, na versão `build-<branch>`.
 
-## Tablet
+## Android (celular e tablet)
+
+Baixe `android/AIStrider.apk` e instale permitindo fontes desconhecidas. O app é a aba de licenças e fala direto com a central (não precisa do PC ligado). Na primeira vez, abra **Conexão com a central** e cole o token de administrador; ele fica guardado só no aparelho.
+
+O APK de `android/` é um app nativo mínimo (WebView, sem Gradle): as chamadas para a central passam por HTTP nativo, então a central não precisa de CORS. Para gerar de novo no Linux: `ANDROID_JAR=<caminho do android.jar> android/build_apk.sh` (usa o `android-sdk` e o `dalvik-exchange` do Ubuntu). Para atualizar o app sem desinstalar, assine sempre com a mesma chave (variável `KEYSTORE`).
+
+## Tablet (Capacitor)
 
 O app de tablet (`tablet/`) é a aba de licenças empacotada com Capacitor. Como no tablet não roda o servidor Python, a tela fala direto com a central de licenças. Na primeira vez, abra **Conexão com a central** e cole o token de administrador; ele fica guardado só no aparelho.
 

@@ -11,3 +11,5 @@ admin_token.txt
 tablet/www/
 tablet/android/
 node_modules/
+android/build/
+android/assets/
