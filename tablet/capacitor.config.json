@@ -1,0 +1,8 @@
+{
+  "appId": "online.revengetunel.aistrider",
+  "appName": "AI Strider",
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  }
+}

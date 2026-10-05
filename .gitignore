@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.venv_build/
+build/
+dist/
+*.spec
+*.db
+admin_token.txt
+.env
+tablet/www/
+tablet/android/
+node_modules/
