@@ -140,7 +140,25 @@ input,select,button{padding:10px;border-radius:8px;border:1px solid #24304b;back
 button{border:0;background:#2563eb;cursor:pointer}.red{background:#b91c1c}.green{background:#166534}.amber{background:#a16207}.muted{background:#334155}
 .tw{overflow-x:auto}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{text-align:left;padding:9px;border-bottom:1px solid #24304b;font-size:12px}
 .n{font-size:24px;font-weight:700}code{user-select:all}.hist{max-height:260px;overflow:auto}.erro{color:#fca5a5}
-@media(max-width:1000px){.cards{grid-template-columns:1fr 1fr}}@media(max-width:560px){.cards{grid-template-columns:1fr}}"""
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600}
+.pill.ativa{background:#14532d;color:#bbf7d0}.pill.congelada{background:#78350f;color:#fde68a}
+.pill.cancelada{background:#7f1d1d;color:#fecaca}.pill.vencida{background:#334155;color:#cbd5e1}
+@media(max-width:1000px){.cards{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){
+/* Celular: cada licença vira um cartão, com os campos rotulados e os botões em grade. */
+.cards{grid-template-columns:1fr 1fr;gap:8px}.card{padding:12px}.card .n{font-size:20px}.card .sub{font-size:11px}
+.r{flex-direction:column}.r>*{width:100%}
+.tw{overflow-x:visible}thead{display:none}
+table,tbody,tr,td{display:block;width:auto}
+tr{background:#0d1528;border:1px solid #24304b;border-radius:12px;padding:12px;margin-top:10px}
+td{border:0;padding:3px 0;font-size:14px;display:flex;gap:10px;align-items:baseline}
+td::before{content:attr(data-l);color:#94a3b8;font-size:12px;flex:0 0 76px}
+td.chave code{font-size:13px;word-break:break-all}
+td.acoes{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px;padding:0}
+td.acoes::before{display:none}td.acoes button{width:100%;padding:12px 8px;font-size:14px}
+.hist table,.hist tbody,.hist tr,.hist td{display:revert}.hist tr{padding:0;border-radius:0;border:0}
+.hist td{display:table-cell;font-size:12px;padding:9px;border-bottom:1px solid #24304b}.hist td::before{display:none}
+}"""
 
 CORPO = """<h1>Painel mestre de licenças</h1><div class="sub">7 sistemas • planos • validade • congelamento • cancelamento • histórico</div>
 __TOPO__<div id="aviso" class="erro"></div>
@@ -156,6 +174,9 @@ __TOPO__<div id="aviso" class="erro"></div>
 <script>
 const products=__PRODUCTS__;let all=[];
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function dataExp(x){if(!x.expires_at)return null;const d=new Date(/[zZ]|[+-]\\d\\d:?\\d\\d$/.test(x.expires_at)?x.expires_at:x.expires_at+'Z');return isNaN(d)?null:d}
+function validade(x){const d=dataExp(x);return d?d.toLocaleDateString('pt-BR'):(x.expires_at||'Sem prazo')}
+function situacao(x){if(x.status==='frozen')return 'congelada';if(x.status==='cancelled')return 'cancelada';if(x.status!=='active')return esc(x.status);const d=dataExp(x);return d&&d<new Date()?'vencida':'ativa'}
 __API__
 const opts=products.map(x=>`<option value="${x.code}">${esc(x.name)}</option>`).join('');
 product.innerHTML=opts;fp.innerHTML+=opts;
@@ -170,9 +191,9 @@ async function showHistory(k){try{let a=await api('/licenses/'+K(k)+'/history');
 const histEl=document.getElementById('history');
 function btn(cls,fn,k,label,extra=''){return `<button class="${cls}" data-k="${esc(k)}" onclick="${fn}(this.dataset.k${extra})">${label}</button>`}
 function render(){let s=q.value.toLowerCase();let a=all.filter(x=>(!fp.value||x.product_code===fp.value)&&(!fs.value||x.status===fs.value)&&((x.customer||'')+(x.license_key||'')+(x.plan||'')).toLowerCase().includes(s));
-tb.innerHTML=a.map(x=>{const k=x.license_key;return `<tr><td>${esc(x.product_name)}</td><td>${esc(x.customer)}</td><td>${esc(x.plan)}</td><td><code>${esc(k)}</code></td><td>${esc(x.status)}</td><td>${esc(x.expires_at||'Sem prazo')}</td><td>${esc(x.device_id||'-')}</td><td>${btn('green','act',k,'Ativar',",'activate'")} ${btn('amber','act',k,'Congelar',",'freeze'")} ${btn('red','act',k,'Cancelar',",'cancel'")} ${btn('muted','ext',k,'+ dias')} ${btn('muted','resetD',k,'Trocar PC')} ${btn('muted','showHistory',k,'Histórico')}</td></tr>`}).join('')}
+tb.innerHTML=a.map(x=>{const k=x.license_key;const s=situacao(x);return `<tr><td data-l="Sistema"><b>${esc(x.product_name)}</b></td><td data-l="Cliente">${esc(x.customer)}</td><td data-l="Plano">${esc(x.plan)}</td><td data-l="Chave" class="chave"><code>${esc(k)}</code></td><td data-l="Status"><span class="pill ${s}">${s[0].toUpperCase()+s.slice(1)}</span></td><td data-l="Validade">${esc(validade(x))}</td><td data-l="PC">${esc(x.device_id||'-')}</td><td data-l="Ações" class="acoes">${btn('green','act',k,'Ativar',",'activate'")} ${btn('amber','act',k,'Congelar',",'freeze'")} ${btn('red','act',k,'Cancelar',",'cancel'")} ${btn('muted','ext',k,'+ dias')} ${btn('muted','resetD',k,'Trocar PC')} ${btn('muted','showHistory',k,'Histórico')}</td></tr>`}).join('')}
 async function load(){try{all=await api('/licenses');aviso.textContent='';render();
-let sum=await api('/summary');cards.innerHTML=sum.map(x=>`<div class="card"><b>${esc(x.product_name)}</b><div class="n">${x.active}</div><span class="sub">ativas • ${x.frozen} congeladas • ${x.cancelled} canceladas • ${x.expired} vencidas</span></div>`).join('')}catch(e){aviso.textContent='Não foi possível falar com a central de licenças: '+e.message}}
+let sum=await api('/summary');cards.innerHTML=sum.map(x=>`<div class="card"><b>${esc(x.product_name)}</b><div class="n">${x.active}</div><span class="sub">ativas • ${x.frozen} congeladas<br>${x.cancelled} canceladas • ${x.expired} vencidas</span></div>`).join('')}catch(e){aviso.textContent='Não foi possível falar com a central de licenças: '+e.message}}
 load()
 </script>"""
 
